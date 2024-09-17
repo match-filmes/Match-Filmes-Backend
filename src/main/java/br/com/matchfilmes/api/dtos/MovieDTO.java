@@ -7,6 +7,6 @@ public record MovieDTO(
     String description,
     String banner,
     List<GenreDTO> genres,
-    Long TMDB_id
+    Long id
 ) {
 }

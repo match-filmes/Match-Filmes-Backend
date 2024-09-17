@@ -12,7 +12,7 @@ public class GenreWeight {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
-  private Long TMDB_genreId;
+  private Long genreId;
   private Double weight;
 
   @ManyToOne
