@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface GenreWeigthRepository extends JpaRepository<GenreWeight, UUID> {
+public interface GenreWeightRepository extends JpaRepository<GenreWeight, UUID> {
 }
