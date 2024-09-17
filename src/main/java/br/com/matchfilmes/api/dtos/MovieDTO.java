@@ -3,10 +3,11 @@ package br.com.matchfilmes.api.dtos;
 import java.util.List;
 
 public record MovieDTO(
+    Long id,
     String title,
     String description,
-    String banner,
+    Double voteAverage,
     List<GenreDTO> genres,
-    Long id
+    ImagesDTO images
 ) {
 }

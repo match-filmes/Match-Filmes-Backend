@@ -7,6 +7,8 @@ public record TMDBMovieResponse(
     String overview,
     Set<TMDBGenreResponse> genres,
     String poster_path,
-    Long id
+    Long id,
+    TMDBImagesResponse images,
+    Double vote_average
 ) {
 }
