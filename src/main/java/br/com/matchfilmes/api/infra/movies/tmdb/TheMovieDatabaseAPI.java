@@ -26,7 +26,6 @@ public class TheMovieDatabaseAPI implements MoviesAPI {
   public MovieDTO getMovie(Long movieId) {
     String path = "/movie/" + movieId;
     String url = TMDBUrl.url(path, List.of("append_to_response=images", "include_image_language=pt-BR,null"));
-
     ResponseEntity<TMDBMovieResponse> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<TMDBMovieResponse>(headers), TMDBMovieResponse.class);
     TMDBMovieResponse tmdbMovieResponse = response.getBody();
 
