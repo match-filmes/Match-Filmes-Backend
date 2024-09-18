@@ -1,6 +1,6 @@
 package br.com.matchfilmes.api.infra.movies.tmdb.dto;
 
-public record TMDBImageResponse(
+public record TMDBImageDTO(
     String file_path,
     int height,
     int width,
