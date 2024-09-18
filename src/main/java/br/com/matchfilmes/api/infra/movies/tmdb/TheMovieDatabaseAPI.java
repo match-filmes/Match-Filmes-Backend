@@ -46,7 +46,8 @@ public class TheMovieDatabaseAPI implements MoviesAPI {
             tmdbMovieDTO.images().backdrops().stream().map(TMDBImageDTO::file_path).toList(),
             tmdbMovieDTO.images().logos().stream().map(TMDBImageDTO::file_path).toList(),
             tmdbMovieDTO.images().posters().stream().map(TMDBImageDTO::file_path).toList()
-        )
+        ),
+        tmdbMovieDTO.poster_path()
     );
 
     logger.info(String.format("DTO created from response -> %s", movieDTO));
@@ -71,7 +72,8 @@ public class TheMovieDatabaseAPI implements MoviesAPI {
             tmdbMovieDTO.overview(),
             tmdbMovieDTO.vote_average(),
             null,
-            null
+            null,
+            tmdbMovieDTO.poster_path()
         )
     ).toList();
     PagedModel<MovieDTO> pagedModel = new PagedModel<>(new PageImpl<>(movies, pageable, tmdbPopularMoviesDTO.total_results()));

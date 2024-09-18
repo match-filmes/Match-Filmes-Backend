@@ -8,6 +8,7 @@ public record MovieDTO(
     String description,
     Double voteAverage,
     List<GenreDTO> genres,
-    ImagesDTO images
+    ImagesDTO images,
+    String poster
 ) {
 }

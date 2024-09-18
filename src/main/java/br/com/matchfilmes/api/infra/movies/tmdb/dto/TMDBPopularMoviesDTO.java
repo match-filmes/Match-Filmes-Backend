@@ -6,6 +6,7 @@ public record TMDBPopularMoviesDTO(
     int page,
     Set<TMDBMovieDTO> results,
     int total_pages,
-    int total_results
+    int total_results,
+    String poster_path
 ) {
 }
