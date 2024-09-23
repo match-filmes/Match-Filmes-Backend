@@ -16,6 +16,11 @@ spring:
     serialization:
       write_dates_as_timestamps: false
 
+jwt:
+  secret: ${JWT_SECRET:mysecretkey}
+  expiration-time: 3600000
+  expiration-time-remember-me: 604800000
+
 env:
   TMDB:
     api_key: ${TMDB_API_KEY}
