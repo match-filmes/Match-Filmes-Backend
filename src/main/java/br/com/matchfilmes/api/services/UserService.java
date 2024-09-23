@@ -22,7 +22,7 @@ public class UserService implements UserDetailsService {
     @Lazy
     private final PasswordEncoder passwordEncoder;
 
-    public void register(UserRegisterDTO registerDTO) {
+    public User register(UserRegisterDTO registerDTO) {
         if (!registerDTO.isPasswordConfirmed()) {
             throw new IllegalArgumentException("As senhas não coincidem.");
         }
@@ -36,7 +36,7 @@ public class UserService implements UserDetailsService {
                 null
         );
 
-        userRepository.save(newUser);
+        return userRepository.save(newUser);
     }
 
     public boolean userExists(String username, String email) {

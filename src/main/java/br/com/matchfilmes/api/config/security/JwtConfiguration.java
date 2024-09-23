@@ -1,4 +1,4 @@
-package br.com.matchfilmes.api.config;
+package br.com.matchfilmes.api.config.security;
 
 import lombok.Getter;
 import lombok.Setter;

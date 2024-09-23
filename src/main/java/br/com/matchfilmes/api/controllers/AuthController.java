@@ -4,9 +4,12 @@ import br.com.matchfilmes.api.dtos.AuthenticationRequestDTO;
 import br.com.matchfilmes.api.dtos.AuthenticationResponseDTO;
 import br.com.matchfilmes.api.dtos.UserRegisterDTO;
 import br.com.matchfilmes.api.infra.JwtUtil;
+import br.com.matchfilmes.api.models.User;
 import br.com.matchfilmes.api.services.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -26,12 +30,13 @@ public class AuthController {
     private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody @Valid UserRegisterDTO registerDTO) {
+    public ResponseEntity<User> register(@RequestBody @Valid UserRegisterDTO registerDTO) throws ResponseStatusException {
         if (userService.userExists(registerDTO.getUsername(), registerDTO.getEmail())) {
-            return ResponseEntity.badRequest().body("Usuário ou senha já cadastrados.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT);
         }
-        userService.register(registerDTO);
-        return ResponseEntity.ok("Usuário cadastrado com sucesso!");
+        User user = userService.register(registerDTO);
+
+        return ResponseEntity.ok(user);
     }
 
     @PostMapping("/login")
