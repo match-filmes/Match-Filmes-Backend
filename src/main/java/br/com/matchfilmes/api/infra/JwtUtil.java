@@ -1,23 +1,27 @@
 package br.com.matchfilmes.api.infra;
 
 import br.com.matchfilmes.api.config.security.JwtConfiguration;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import com.auth0.jwt.algorithms.Algorithm;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
-import java.util.Map;
-import java.util.function.Function;
 
 @Component
 public class JwtUtil {
     private final String SECRET_KEY = "mysecretkey";
     private final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10 horas
     private final long EXPIRATION_TIME_REMEMBER_ME = 1000 * 60 * 60 * 24 * 7; // 7 dias
+    private final String AMERICA_SAO_PAULO_OFFSET = "-03:00";
 
     @Lazy
     private final JwtConfiguration jwtConfig;
@@ -29,48 +33,57 @@ public class JwtUtil {
 
     public String generateToken(UserDetails userDetails, boolean rememberMe) {
         long expirationTime = rememberMe ? jwtConfig.getExpirationTimeRememberMe() : jwtConfig.getExpirationTime();
-        return Jwts.builder()
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
-                .signWith(SignatureAlgorithm.HS256, jwtConfig.getSecret())
-                .compact();
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
+            return JWT.create()
+                    .withIssuer("daily-manage")
+                    .withSubject(userDetails.getUsername())
+                    .withExpiresAt(new Date(System.currentTimeMillis() + expirationTime))
+                    .sign(algorithm);
+        } catch (JWTCreationException exception) {
+            throw new RuntimeException("Error while generating token", exception);
+        }
     }
 
-    private String createToken(Map<String, Object> claims, String subject, boolean rememberMe) {
-        long expirationTime = rememberMe ? EXPIRATION_TIME_REMEMBER_ME : EXPIRATION_TIME;
-        return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
-                .compact();
+    public boolean isTokenNotExpired(String token) {
+        DecodedJWT decodedJWT = JWT.decode(token);
+        Instant expireDate = decodedJWT.getExpiresAtAsInstant();
+        return LocalDateTime.now().toInstant(ZoneOffset.of(AMERICA_SAO_PAULO_OFFSET)).isBefore(expireDate);
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    public String extractSubject(String token) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
+            return JWT.require(algorithm)
+                    .withIssuer("super-promo-zum")
+                    .build()
+                    .verify(token)
+                    .getSubject();
+        } catch (JWTVerificationException exception) {
+            return "";
+        }
     }
 
-    private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+    public String extractRole(String token) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
+            return JWT.require(algorithm)
+                    .withIssuer("super-promo-zum")
+                    .build()
+                    .verify(token)
+                    .getClaim("roles").asString();
+        } catch (JWTVerificationException exception) {
+            return null;
+        }
     }
 
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+    public String extractJWTToken(String bearerToken) {
+        return bearerToken.replace("Bearer ", "");
     }
 
-    public Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
-
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
-    }
-
-    private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+    private Instant generateExpirationDate() {
+        int TOKEN_EXPIRATION_IN_HOURS = 12;
+        return LocalDateTime.now().plusHours(TOKEN_EXPIRATION_IN_HOURS)
+                .toInstant(ZoneOffset.of(AMERICA_SAO_PAULO_OFFSET));
     }
 }
