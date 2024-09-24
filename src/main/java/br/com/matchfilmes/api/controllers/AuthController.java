@@ -1,19 +1,16 @@
 package br.com.matchfilmes.api.controllers;
 
-import br.com.matchfilmes.api.dtos.AuthenticationRequestDTO;
+import br.com.matchfilmes.api.dtos.LoginRequestDTO;
 import br.com.matchfilmes.api.dtos.AuthenticationResponseDTO;
-import br.com.matchfilmes.api.dtos.UserRegisterDTO;
-import br.com.matchfilmes.api.infra.JwtUtil;
+import br.com.matchfilmes.api.dtos.RegisterRequestDTO;
+import br.com.matchfilmes.api.dtos.factories.UserDTOFactory;
 import br.com.matchfilmes.api.models.User;
+import br.com.matchfilmes.api.services.AuthenticationService;
 import br.com.matchfilmes.api.services.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,34 +18,35 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @AllArgsConstructor
 public class AuthController {
-    private final AuthenticationManager authenticationManager;
-    private final UserService userService;
-    private final JwtUtil jwtUtil;
+  private final UserService userService;
+  private final AuthenticationService authenticationService;
 
-    @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody @Valid UserRegisterDTO registerDTO) throws ResponseStatusException {
-        if (userService.userExists(registerDTO.getUsername(), registerDTO.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT);
-        }
-        User user = userService.register(registerDTO);
+  @PostMapping("/register")
+  public ResponseEntity<AuthenticationResponseDTO> register(@RequestBody @Valid RegisterRequestDTO registerDTO) throws ResponseStatusException {
+    User user = userService.createUser(registerDTO);
+    String token = authenticationService.authenticate(registerDTO.username(), registerDTO.password(), false);
 
-        return ResponseEntity.ok(user);
-    }
+    AuthenticationResponseDTO response = new AuthenticationResponseDTO(
+        token,
+        UserDTOFactory.create(user)
+    );
 
-    @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponseDTO> login(@RequestBody @Valid AuthenticationRequestDTO authRequest) {
-        try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
-        } catch (BadCredentialsException e) {
-            return ResponseEntity.status(401).body(new AuthenticationResponseDTO("Dados inválidos."));
-        }
+    return new ResponseEntity<>(response, HttpStatus.CREATED);
+  }
 
-        final UserDetails userDetails = userService.loadUserByUsername(authRequest.getUsername());
-        final String jwt = jwtUtil.generateToken(userDetails, authRequest.isRememberMe());
-        return ResponseEntity.ok(new AuthenticationResponseDTO(jwt));
-    }
+  @PostMapping("/login")
+  public ResponseEntity<AuthenticationResponseDTO> login(@RequestBody @Valid LoginRequestDTO loginRequest) {
+    User user = userService.loadUserByUsername(loginRequest.username());
+    String token = authenticationService.authenticate(loginRequest.username(), loginRequest.password(), loginRequest.rememberUser());
+
+    AuthenticationResponseDTO response = new AuthenticationResponseDTO(
+        token,
+        UserDTOFactory.create(user)
+    );
+
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
 }
