@@ -20,7 +20,7 @@ import java.util.Set;
 public class UserAlgorithmService {
   private final UserAlgorithmRepository userAlgorithmRepository;
   private final GenreWeightRepository genreWeightRepository;
-  private static final double IMPROVE_CONSTANT = 0.0322553;
+  private static final double IMPROVE_CONSTANT = 0.029879263746;
 
   public void improveGenreWeight(GenreDTO genreDTO, User user) {
     UserAlgorithm userAlgorithm = userAlgorithmRepository.findByUser(user).orElse(
