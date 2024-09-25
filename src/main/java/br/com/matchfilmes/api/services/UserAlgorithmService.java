@@ -51,8 +51,6 @@ public class UserAlgorithmService {
           .build();
     }
 
-    System.out.println("aa");
-
     double valeuToImprove = IMPROVE_CONSTANT;
     if (genreWeight.getWeight() + valeuToImprove >= 1.0) valeuToImprove = 0;
 

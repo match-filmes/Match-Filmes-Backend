@@ -90,7 +90,6 @@ public class TheMovieDatabaseAPI implements MoviesAPI {
     String path = "/discover/movie";
     String genresIdToParam = Arrays.stream(genresIds).map(id -> id.toString() + "|").collect(Collectors.joining());
     String url = TMDBUrl.url(path, List.of("page=" + (pageable.getPageNumber()+1), "with_genres=" + genresIdToParam));
-    System.out.println(url);
     ResponseEntity<MovieListDTO> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<MovieListDTO>(headers), MovieListDTO.class);
     MovieListDTO movieListDTO = response.getBody();
 
