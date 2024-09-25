@@ -29,7 +29,6 @@ public class UserAlgorithmService {
             .build()
     );
     Set<GenreWeight> genreWeights = userAlgorithm.getGenresWeights();
-
     if (genreWeights == null) genreWeights = new HashSet<>();
 
     Optional<GenreWeight> genreWeightOptional = genreWeights.stream().filter(
@@ -50,7 +49,6 @@ public class UserAlgorithmService {
           .userAlgorithm(userAlgorithm)
           .build();
     }
-
     double valeuToImprove = IMPROVE_CONSTANT;
     if (genreWeight.getWeight() + valeuToImprove >= 1.0) valeuToImprove = 0;
 
@@ -59,6 +57,21 @@ public class UserAlgorithmService {
 
     userAlgorithm.setGenresWeights(genreWeights);
     userAlgorithmRepository.save(userAlgorithm);
+
+    genreWeights.stream().filter(
+        genre -> {
+          if (genre.getGenreId() == null) return false;
+          return !genre.getGenreId().equals(genreDTO.id());
+        }
+    ).forEach(genre -> decreaseGenreWeight(genre.getGenreId(), user));
+  }
+
+  private void decreaseGenreWeight(Long genreId, User user) {
+    GenreWeight genreWeight = genreWeightRepository.findByGenreIdAndUserAlgorithmUser(genreId, user).orElseThrow();
+    double valeuToDecrease = IMPROVE_CONSTANT/2;
+    if (genreWeight.getWeight() - valeuToDecrease <= 0.0) valeuToDecrease = 0;
+    genreWeight.setWeight(genreWeight.getWeight() - valeuToDecrease);
+    genreWeightRepository.save(genreWeight);
   }
 
   public Set<GenreWeight> getUserTopGenreWeights(User user) throws ResponseStatusException {

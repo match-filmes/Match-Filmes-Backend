@@ -37,7 +37,6 @@ public class MovieService {
   }
 
   public PagedModel<MovieDTO> findRecommendedMovies(Pageable pageable, User user) {
-
     List<GenreWeight> userTopGenres = userAlgorithmService.getUserTopGenreWeights(user).stream().toList();
 
     Set<MovieDTO> recommendedMovies = getMovieDTOS(pageable, userTopGenres);
