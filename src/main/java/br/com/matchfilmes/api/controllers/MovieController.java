@@ -31,4 +31,11 @@ public class MovieController {
     PagedModel<MovieDTO> page = movieService.findPopularMovies(pageable);
     return new ResponseEntity<>(page, HttpStatus.OK);
   }
+
+  @GetMapping("/recommended")
+  public ResponseEntity<PagedModel<MovieDTO>> findRecommendedMovies(Pageable pageable, @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+    User user = tokenService.extractUser(authHeader);
+    PagedModel<MovieDTO> page = movieService.findRecommendedMovies(pageable, user);
+    return new ResponseEntity<>(page, HttpStatus.OK);
+  }
 }

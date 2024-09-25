@@ -48,7 +48,7 @@ public class TokenService {
     return userRepository.findByUsername(subject).orElseThrow();
   }
 
-  private String extractSubject(String token) {
+  public String extractSubject(String token) {
     try {
       Algorithm algorithm = Algorithm.HMAC256(jwtProperties.getSecret());
       return JWT.require(algorithm)

@@ -9,7 +9,8 @@ import java.util.Set;
 public interface MoviesAPI {
   MovieDTO getMovie(Long movieId);
   PagedModel<MovieDTO> getPopularMovies(Pageable pageable);
-  Set<MovieDTO> getRecommendedMovies(Pageable pageable, Long movieId);
-  Set<MovieDTO> getSimilarMovies(Pageable pageable, Long movieId);
-  Set<MovieDTO> getMovies(Pageable pageable, String query);
+  Set<MovieDTO> getRecommendedMoviesByGenres(Pageable pageable, Long[] genresIds);
+  PagedModel<MovieDTO> getRecommendedMovies(Pageable pageable, Long movieId);
+  PagedModel<MovieDTO> getSimilarMovies(Pageable pageable, Long movieId);
+  PagedModel<MovieDTO> getMovies(Pageable pageable, String query);
 }
