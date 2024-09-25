@@ -1,14 +1,18 @@
 package br.com.matchfilmes.api.models;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 import java.util.Set;
 import java.util.UUID;
 
 @Entity
+@Builder
 @Table(name = "_user_algorithm")
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserAlgorithm {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -19,6 +23,6 @@ public class UserAlgorithm {
   @JoinColumn(name = "userId")
   private User user;
 
-  @OneToMany(mappedBy = "userAlgorithm")
+  @OneToMany(mappedBy = "userAlgorithm", cascade = CascadeType.ALL)
   private Set<GenreWeight> genresWeights;
 }

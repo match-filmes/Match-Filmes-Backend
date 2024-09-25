@@ -1,6 +1,8 @@
 package br.com.matchfilmes.api.services;
 
 import br.com.matchfilmes.api.infra.security.JwtProperties;
+import br.com.matchfilmes.api.models.User;
+import br.com.matchfilmes.api.repositories.UserRepository;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
@@ -17,6 +19,7 @@ import java.time.ZoneOffset;
 @Service
 @AllArgsConstructor
 public class TokenService {
+  private final UserRepository userRepository;
   private final String AMERICA_SAO_PAULO_OFFSET = "-03:00";
   private final JwtProperties jwtProperties;
 
@@ -39,6 +42,12 @@ public class TokenService {
     return LocalDateTime.now().toInstant(ZoneOffset.of(AMERICA_SAO_PAULO_OFFSET)).isBefore(expireDate);
   }
 
+  public User extractUser(String bearerToken) {
+    String token = extractJWTToken(bearerToken);
+    String subject = extractSubject(token);
+    return userRepository.findByUsername(subject).orElseThrow();
+  }
+
   public String extractSubject(String token) {
     try {
       Algorithm algorithm = Algorithm.HMAC256(jwtProperties.getSecret());
@@ -52,7 +61,7 @@ public class TokenService {
     }
   }
 
-  public String extractJWTToken(String bearerToken) {
+  private String extractJWTToken(String bearerToken) {
     return bearerToken.replace("Bearer ", "");
   }
 

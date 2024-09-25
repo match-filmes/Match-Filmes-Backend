@@ -6,7 +6,7 @@ import br.com.matchfilmes.api.dtos.MovieDTO;
 import br.com.matchfilmes.api.infra.movies.MoviesAPI;
 import br.com.matchfilmes.api.infra.movies.tmdb.dto.TMDBImageDTO;
 import br.com.matchfilmes.api.infra.movies.tmdb.dto.TMDBMovieDTO;
-import br.com.matchfilmes.api.infra.movies.tmdb.dto.TMDBPopularMoviesDTO;
+import br.com.matchfilmes.api.infra.movies.tmdb.dto.MovieListDTO;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.data.domain.PageImpl;
@@ -16,8 +16,10 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Component
@@ -58,15 +60,15 @@ public class TheMovieDatabaseAPI implements MoviesAPI {
   @Override
   public PagedModel<MovieDTO> getPopularMovies(Pageable pageable) {
     String path = "/movie/popular";
-    String url = TMDBUrl.url(path, List.of("page=" + pageable.getPageNumber()));
-    ResponseEntity<TMDBPopularMoviesDTO> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<TMDBPopularMoviesDTO>(headers), TMDBPopularMoviesDTO.class);
-    TMDBPopularMoviesDTO tmdbPopularMoviesDTO = response.getBody();
+    String url = TMDBUrl.url(path, List.of("page=" + (pageable.getPageNumber()+1)));
+    ResponseEntity<MovieListDTO> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<MovieListDTO>(headers), MovieListDTO.class);
+    MovieListDTO movieListDTO = response.getBody();
 
-    logger.info(String.format("Response from %s -> %s", url, tmdbPopularMoviesDTO));
+    logger.info(String.format("Response from %s -> %s", url, movieListDTO));
 
-    assert tmdbPopularMoviesDTO != null;
-    List<MovieDTO> movies = tmdbPopularMoviesDTO.results().stream().map(
-        tmdbMovieDTO ->  new MovieDTO(
+    assert movieListDTO != null;
+    List<MovieDTO> movies = movieListDTO.results().stream().map(
+        tmdbMovieDTO -> new MovieDTO(
             tmdbMovieDTO.id(),
             tmdbMovieDTO.title(),
             tmdbMovieDTO.overview(),
@@ -76,7 +78,7 @@ public class TheMovieDatabaseAPI implements MoviesAPI {
             tmdbMovieDTO.poster_path()
         )
     ).toList();
-    PagedModel<MovieDTO> pagedModel = new PagedModel<>(new PageImpl<>(movies, pageable, tmdbPopularMoviesDTO.total_results()));
+    PagedModel<MovieDTO> pagedModel = new PagedModel<>(new PageImpl<>(movies, pageable, movieListDTO.total_results()));
 
     logger.info(String.format("DTO created from response -> %s", movies));
 
@@ -84,18 +86,46 @@ public class TheMovieDatabaseAPI implements MoviesAPI {
   }
 
   @Override
-  public Set<MovieDTO> getRecommendedMovies(Pageable pageable, Long movieId) {
-    return Set.of();
+  public Set<MovieDTO> getRecommendedMoviesByGenres(Pageable pageable, Long[] genresIds) {
+    String path = "/discover/movie";
+    String genresIdToParam = Arrays.stream(genresIds).map(id -> id.toString() + "|").collect(Collectors.joining());
+    String url = TMDBUrl.url(path, List.of("page=" + (pageable.getPageNumber()+1), "with_genres=" + genresIdToParam));
+    ResponseEntity<MovieListDTO> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<MovieListDTO>(headers), MovieListDTO.class);
+    MovieListDTO movieListDTO = response.getBody();
+
+    logger.info(String.format("Response from %s -> %s", url, movieListDTO));
+
+    assert movieListDTO != null;
+    Set<MovieDTO> movies = movieListDTO.results().stream().map(
+        tmdbMovieDTO -> new MovieDTO(
+            tmdbMovieDTO.id(),
+            tmdbMovieDTO.title(),
+            tmdbMovieDTO.overview(),
+            tmdbMovieDTO.vote_average(),
+            null,
+            null,
+            tmdbMovieDTO.poster_path()
+        )
+    ).collect(Collectors.toSet());
+
+    logger.info(String.format("DTO created from response -> %s", movies));
+
+    return movies;
   }
 
   @Override
-  public Set<MovieDTO> getSimilarMovies(Pageable pageable, Long movieId) {
-    return Set.of();
+  public PagedModel<MovieDTO> getRecommendedMovies(Pageable pageable, Long movieId) {
+    return null;
   }
 
   @Override
-  public Set<MovieDTO> getMovies(Pageable pageable, String query) {
-    return Set.of();
+  public PagedModel<MovieDTO> getSimilarMovies(Pageable pageable, Long movieId) {
+    return null;
+  }
+
+  @Override
+  public PagedModel<MovieDTO> getMovies(Pageable pageable, String query) {
+    return null;
   }
 
 }
