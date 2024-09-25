@@ -1,6 +1,5 @@
 package br.com.matchfilmes.api.services;
 
-import br.com.matchfilmes.api.dtos.GenreDTO;
 import br.com.matchfilmes.api.dtos.MovieDTO;
 import br.com.matchfilmes.api.infra.movies.MoviesAPI;
 import br.com.matchfilmes.api.models.GenreWeight;
