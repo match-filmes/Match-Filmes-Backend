@@ -23,7 +23,7 @@ public class TokenService {
   private final String AMERICA_SAO_PAULO_OFFSET = "-03:00";
   private final JwtProperties jwtProperties;
 
-  protected String generateToken(UserDetails userDetails, boolean rememberUser) {
+  public String generateToken(UserDetails userDetails, boolean rememberUser) {
     try {
       Algorithm algorithm = Algorithm.HMAC256(jwtProperties.getSecret());
       return JWT.create()
