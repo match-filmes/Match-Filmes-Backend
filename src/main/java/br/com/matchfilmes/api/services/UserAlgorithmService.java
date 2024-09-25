@@ -12,8 +12,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -57,21 +59,25 @@ public class UserAlgorithmService {
 
     userAlgorithm.setGenresWeights(genreWeights);
     userAlgorithmRepository.save(userAlgorithm);
+  }
+
+  public void decreaseOthersGenresWeights(List<GenreDTO> genresToNotDecrease, User user) {
+    Set<Long> genreWeightsIds = genresToNotDecrease.stream().map(GenreDTO::id).collect(Collectors.toSet());
+    UserAlgorithm userAlgorithm = userAlgorithmRepository.findByUser(user).orElseThrow();
+    Set<GenreWeight> genreWeights = userAlgorithm.getGenresWeights();
 
     genreWeights.stream().filter(
         genre -> {
           if (genre.getGenreId() == null) return false;
-          return !genre.getGenreId().equals(genreDTO.id());
+          return !genreWeightsIds.contains(genre.getGenreId());
         }
-    ).forEach(genre -> decreaseGenreWeight(genre.getGenreId(), user));
-  }
-
-  private void decreaseGenreWeight(Long genreId, User user) {
-    GenreWeight genreWeight = genreWeightRepository.findByGenreIdAndUserAlgorithmUser(genreId, user).orElseThrow();
-    double valeuToDecrease = IMPROVE_CONSTANT/2;
-    if (genreWeight.getWeight() - valeuToDecrease <= 0.0) valeuToDecrease = 0;
-    genreWeight.setWeight(genreWeight.getWeight() - valeuToDecrease);
-    genreWeightRepository.save(genreWeight);
+    ).forEach(genre -> {
+      GenreWeight genreWeight = genreWeightRepository.findByGenreIdAndUserAlgorithmUser(genre.getGenreId(), user).orElseThrow();
+      double valeuToDecrease = IMPROVE_CONSTANT / 2;
+      if (genreWeight.getWeight() - valeuToDecrease <= 0.0) valeuToDecrease = 0;
+      genreWeight.setWeight(genreWeight.getWeight() - valeuToDecrease);
+      genreWeightRepository.save(genreWeight);
+    });
   }
 
   public Set<GenreWeight> getUserTopGenreWeights(User user) throws ResponseStatusException {

@@ -27,6 +27,7 @@ public class MovieService {
     movie.genres().forEach(
         genreDTO -> userAlgorithmService.improveGenreWeight(genreDTO, user)
     );
+    userAlgorithmService.decreaseOthersGenresWeights(movie.genres(), user);
 
     return movie;
   }
@@ -50,7 +51,7 @@ public class MovieService {
     for (int i = 0; actualNumberOfMovies < maxNumberOfMovies; i++) {
       if (i == userTopGenres.size()) break;
       GenreWeight genreWeight = userTopGenres.get(i);
-      int totalMoviesOfGenre = (int) Math.floor(genreWeight.getWeight() * maxNumberOfMovies);
+      int totalMoviesOfGenre = (int) Math.ceil(genreWeight.getWeight() * maxNumberOfMovies);
 
       if (actualNumberOfMovies + totalMoviesOfGenre > maxNumberOfMovies) {
         totalMoviesOfGenre = maxNumberOfMovies - actualNumberOfMovies;
