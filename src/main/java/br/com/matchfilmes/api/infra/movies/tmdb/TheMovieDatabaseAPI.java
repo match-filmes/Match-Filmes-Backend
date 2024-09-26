@@ -3,6 +3,7 @@ package br.com.matchfilmes.api.infra.movies.tmdb;
 import br.com.matchfilmes.api.dtos.GenreDTO;
 import br.com.matchfilmes.api.dtos.ImagesDTO;
 import br.com.matchfilmes.api.dtos.MovieDTO;
+import br.com.matchfilmes.api.exceptions.MovieNotFoundException;
 import br.com.matchfilmes.api.infra.movies.MoviesAPI;
 import br.com.matchfilmes.api.infra.movies.tmdb.dto.TMDBImageDTO;
 import br.com.matchfilmes.api.infra.movies.tmdb.dto.TMDBMovieDTO;
@@ -29,10 +30,13 @@ public class TheMovieDatabaseAPI implements MoviesAPI {
   private final Logger logger;
 
   @Override
-  public MovieDTO getMovie(Long movieId) {
+  public MovieDTO getMovie(Long movieId) throws MovieNotFoundException {
     String path = "/movie/" + movieId;
     String url = TMDBUrl.url(path, List.of("append_to_response=images", "include_image_language=pt-BR,null"));
     ResponseEntity<TMDBMovieDTO> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<TMDBMovieDTO>(headers), TMDBMovieDTO.class);
+
+    if (response.getStatusCode() == HttpStatus.NOT_FOUND) throw new MovieNotFoundException();
+
     TMDBMovieDTO tmdbMovieDTO = response.getBody();
 
     logger.info(String.format("Response from %s -> %s", url, tmdbMovieDTO));

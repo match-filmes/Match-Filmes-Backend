@@ -1,6 +1,7 @@
 package br.com.matchfilmes.api.services;
 
 import br.com.matchfilmes.api.dtos.MovieDTO;
+import br.com.matchfilmes.api.exceptions.MovieNotFoundException;
 import br.com.matchfilmes.api.infra.movies.MoviesAPI;
 import br.com.matchfilmes.api.models.GenreWeight;
 import br.com.matchfilmes.api.models.User;
@@ -21,13 +22,13 @@ public class MovieService {
   private final UserAlgorithmService userAlgorithmService;
   private final Logger logger;
 
-  public MovieDTO findById(Long movieId, User user) {
+  public MovieDTO findById(Long movieId, User user) throws MovieNotFoundException {
     MovieDTO movie = moviesAPI.getMovie(movieId);
 
     movie.genres().forEach(
-        genreDTO -> userAlgorithmService.improveGenreWeight(genreDTO, user)
+        genreDTO -> userAlgorithmService.improveGenreWeight(genreDTO, user, null)
     );
-    userAlgorithmService.decreaseOthersGenresWeights(movie.genres(), user);
+    userAlgorithmService.decreaseOthersGenresWeights(movie.genres(), user, null);
 
     return movie;
   }

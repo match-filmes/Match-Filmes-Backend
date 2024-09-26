@@ -1,6 +1,7 @@
 package br.com.matchfilmes.api.controllers;
 
 import br.com.matchfilmes.api.dtos.MovieDTO;
+import br.com.matchfilmes.api.exceptions.MovieNotFoundException;
 import br.com.matchfilmes.api.models.User;
 import br.com.matchfilmes.api.services.MovieService;
 import br.com.matchfilmes.api.services.TokenService;
@@ -20,7 +21,7 @@ public class MovieController {
   private final TokenService tokenService;
 
   @GetMapping("/{id}")
-  public ResponseEntity<MovieDTO> findMovieById(@PathVariable Long id, @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+  public ResponseEntity<MovieDTO> findMovieById(@PathVariable Long id, @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) throws MovieNotFoundException {
     User user = tokenService.extractUser(authHeader);
     MovieDTO movieDTO = movieService.findById(id, user);
     return new ResponseEntity<>(movieDTO, HttpStatus.OK);

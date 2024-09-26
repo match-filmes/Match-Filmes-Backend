@@ -18,6 +18,8 @@ public class UserAlgorithm {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
+  @OneToMany(mappedBy = "userAlgorithm", cascade = CascadeType.ALL)
+  private Set<FavoriteMovie> favoriteMovies;
 
   @OneToOne
   @JoinColumn(name = "userId")

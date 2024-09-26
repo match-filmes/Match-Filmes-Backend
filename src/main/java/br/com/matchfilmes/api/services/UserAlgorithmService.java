@@ -24,7 +24,7 @@ public class UserAlgorithmService {
   private final GenreWeightRepository genreWeightRepository;
   private static final double IMPROVE_CONSTANT = 0.029879263746;
 
-  public void improveGenreWeight(GenreDTO genreDTO, User user) {
+  public void improveGenreWeight(GenreDTO genreDTO, User user, Double strength) {
     UserAlgorithm userAlgorithm = userAlgorithmRepository.findByUser(user).orElse(
         UserAlgorithm.builder()
             .user(user)
@@ -51,17 +51,18 @@ public class UserAlgorithmService {
           .userAlgorithm(userAlgorithm)
           .build();
     }
-    double valeuToImprove = IMPROVE_CONSTANT;
-    if (genreWeight.getWeight() + valeuToImprove >= 1.0) valeuToImprove = 0;
+    double valueToImprove = IMPROVE_CONSTANT;
+    if (strength != null) valueToImprove = valueToImprove * strength;
+    if (genreWeight.getWeight() + valueToImprove >= 1.0) valueToImprove = 0;
 
-    genreWeight.setWeight(genreWeight.getWeight() + valeuToImprove);
+    genreWeight.setWeight(genreWeight.getWeight() + valueToImprove);
     genreWeights.add(genreWeight);
 
     userAlgorithm.setGenresWeights(genreWeights);
     userAlgorithmRepository.save(userAlgorithm);
   }
 
-  public void decreaseOthersGenresWeights(List<GenreDTO> genresToNotDecrease, User user) {
+  public void decreaseOthersGenresWeights(List<GenreDTO> genresToNotDecrease, User user, Double strength) {
     Set<Long> genreWeightsIds = genresToNotDecrease.stream().map(GenreDTO::id).collect(Collectors.toSet());
     UserAlgorithm userAlgorithm = userAlgorithmRepository.findByUser(user).orElseThrow();
     Set<GenreWeight> genreWeights = userAlgorithm.getGenresWeights();
@@ -73,9 +74,10 @@ public class UserAlgorithmService {
         }
     ).forEach(genre -> {
       GenreWeight genreWeight = genreWeightRepository.findByGenreIdAndUserAlgorithmUser(genre.getGenreId(), user).orElseThrow();
-      double valeuToDecrease = IMPROVE_CONSTANT / 2;
-      if (genreWeight.getWeight() - valeuToDecrease <= 0.0) valeuToDecrease = 0;
-      genreWeight.setWeight(genreWeight.getWeight() - valeuToDecrease);
+      double valueToDecrease = IMPROVE_CONSTANT / 2;
+      if (strength != null) valueToDecrease = valueToDecrease * strength;
+      if (genreWeight.getWeight() - valueToDecrease <= 0.0) valueToDecrease = 0;
+      genreWeight.setWeight(genreWeight.getWeight() - valueToDecrease);
       genreWeightRepository.save(genreWeight);
     });
   }
