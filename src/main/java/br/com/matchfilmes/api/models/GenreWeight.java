@@ -16,7 +16,6 @@ public class GenreWeight {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
-  @Column(unique = true)
   private Long genreId;
   private Double weight;
 

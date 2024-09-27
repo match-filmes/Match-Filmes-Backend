@@ -28,6 +28,14 @@ public class FavoriteController {
     return new ResponseEntity<>(movie, HttpStatus.OK);
   }
 
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Boolean> unfavoriteMovie(@PathVariable Long id, @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) throws MovieNotFoundException {
+    User user = tokenService.extractUser(authHeader);
+    boolean removed = favoriteService.unfavoriteMovie(id, user);
+
+    return new ResponseEntity<>(removed, HttpStatus.OK);
+  }
+
   @GetMapping("")
   public ResponseEntity<PagedModel<MovieDTO>> getFavoritesMovies(Pageable pageable, @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
     User user = tokenService.extractUser(authHeader);

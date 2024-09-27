@@ -108,4 +108,47 @@ public class FavoriteService {
 
     return new PagedModel<>(new PageImpl<>(movieDTOS.stream().toList(), pageable, totalElements));
   }
+
+  public boolean unfavoriteMovie(Long movieId, User user) throws MovieNotFoundException {
+    Optional<UserAlgorithm> userAlgorithmOptional = userAlgorithmRepository.findByUser(user);
+    UserAlgorithm userAlgorithm;
+
+    if (userAlgorithmOptional.isPresent()) {
+      userAlgorithm = userAlgorithmOptional.get();
+    } else {
+      userAlgorithm = UserAlgorithm.builder()
+          .user(user)
+          .build();
+      userAlgorithm = userAlgorithmRepository.save(userAlgorithm);
+    }
+
+    Optional<FavoriteMovie> favoriteMovieOptional = favoriteMovieRepository.findByMovieIdAndUserAlgorithm(movieId, userAlgorithm);
+
+    if (favoriteMovieOptional.isEmpty()) {
+      logger.info(String.format("Movie with Id '%s' is not in the favorites list.", movieId));
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    }
+
+    logger.info(String.format("Movie with Id '%s', marked for removal, is in the favorites list.", favoriteMovieOptional.get().getMovieId()));
+
+    Set<FavoriteMovie> favoriteMovies = userAlgorithm.getFavoriteMovies();
+
+    FavoriteMovie favoriteMovie = favoriteMovieRepository.findByMovieIdAndUserAlgorithm(movieId, userAlgorithm).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    MovieDTO movie = moviesAPI.getMovie(movieId);
+
+    favoriteMovies.remove(favoriteMovie);
+    userAlgorithm.setFavoriteMovies(favoriteMovies);
+
+    Set<Long> favoriteMoviesId = favoriteMovies.stream().map(FavoriteMovie::getMovieId).collect(Collectors.toSet());
+
+    logger.info(String.format("Set of Favorite Movies after removal: %s", favoriteMoviesId));
+
+    favoriteMovieRepository.delete(favoriteMovie);
+
+    movie.genres().forEach(
+        genreDTO -> userAlgorithmService.improveGenreWeight(genreDTO, user, 0.5)
+    );
+
+    return true;
+  }
 }
