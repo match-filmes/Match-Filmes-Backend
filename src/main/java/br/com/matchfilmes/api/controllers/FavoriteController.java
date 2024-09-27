@@ -6,6 +6,8 @@ import br.com.matchfilmes.api.models.User;
 import br.com.matchfilmes.api.services.FavoriteService;
 import br.com.matchfilmes.api.services.TokenService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,5 +26,13 @@ public class FavoriteController {
     MovieDTO movie = favoriteService.favoriteMovie(id, user);
 
     return new ResponseEntity<>(movie, HttpStatus.OK);
+  }
+
+  @GetMapping("")
+  public ResponseEntity<PagedModel<MovieDTO>> getFavoritesMovies(Pageable pageable, @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+    User user = tokenService.extractUser(authHeader);
+    PagedModel<MovieDTO> page = favoriteService.getFavoritesMovies(pageable, user);
+
+    return new ResponseEntity<>(page, HttpStatus.OK);
   }
 }

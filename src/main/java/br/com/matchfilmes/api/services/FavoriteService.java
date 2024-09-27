@@ -10,11 +10,16 @@ import br.com.matchfilmes.api.repositories.FavoriteMovieRepository;
 import br.com.matchfilmes.api.repositories.UserAlgorithmRepository;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,6 +32,7 @@ public class FavoriteService {
   private final FavoriteMovieRepository favoriteMovieRepository;
   private final UserAlgorithmService userAlgorithmService;
   private final Logger logger;
+  private final MovieService movieService;
 
   public MovieDTO favoriteMovie(Long movieId, User user) throws MovieNotFoundException, ResponseStatusException {
     Optional<UserAlgorithm> userAlgorithmOptional = userAlgorithmRepository.findByUser(user);
@@ -73,5 +79,33 @@ public class FavoriteService {
     userAlgorithmService.decreaseOthersGenresWeights(movie.genres(), user, null);
 
     return movie;
+  }
+
+  public PagedModel<MovieDTO> getFavoritesMovies(Pageable pageable, User user) {
+    Optional<UserAlgorithm> userAlgorithmOptional = userAlgorithmRepository.findByUser(user);
+    UserAlgorithm userAlgorithm;
+
+    if (userAlgorithmOptional.isPresent()) {
+      userAlgorithm = userAlgorithmOptional.get();
+    } else {
+      userAlgorithm = UserAlgorithm.builder()
+          .user(user)
+          .build();
+      userAlgorithm = userAlgorithmRepository.save(userAlgorithm);
+    }
+
+    Page<FavoriteMovie> favoriteMovies = favoriteMovieRepository.findAllByUserAlgorithm(userAlgorithm, pageable);
+    Long totalElements = favoriteMovieRepository.countByUserAlgorithm(userAlgorithm);
+
+    Set<Long> favoriteMoviesId = favoriteMovies.stream().map(FavoriteMovie::getMovieId).collect(Collectors.toSet());
+    Set<MovieDTO> movieDTOS = favoriteMoviesId.stream().map(id -> {
+      try {
+        return movieService.findById(id);
+      } catch (MovieNotFoundException e) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+      }
+    }).collect(Collectors.toSet());
+
+    return new PagedModel<>(new PageImpl<>(movieDTOS.stream().toList(), pageable, totalElements));
   }
 }

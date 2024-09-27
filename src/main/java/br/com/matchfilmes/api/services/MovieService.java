@@ -33,6 +33,10 @@ public class MovieService {
     return movie;
   }
 
+  public MovieDTO findById(Long movieId) throws MovieNotFoundException {
+    return moviesAPI.getMovie(movieId);
+  }
+
   public PagedModel<MovieDTO> findPopularMovies(Pageable pageable) {
     return moviesAPI.getPopularMovies(pageable);
   }
