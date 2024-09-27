@@ -39,4 +39,10 @@ public class MovieController {
     PagedModel<MovieDTO> page = movieService.findRecommendedMovies(pageable, user);
     return new ResponseEntity<>(page, HttpStatus.OK);
   }
+
+  @GetMapping("/similar/{id}")
+  public ResponseEntity<PagedModel<MovieDTO>> findSimilarMovies(Pageable pageable, @PathVariable Long id) {
+    PagedModel<MovieDTO> page = movieService.findSimilarMovies(pageable, id);
+    return new ResponseEntity<>(page, HttpStatus.OK);
+  }
 }

@@ -76,4 +76,8 @@ public class MovieService {
     });
     return recommendedMovies;
   }
+
+  public PagedModel<MovieDTO> findSimilarMovies(Pageable pageable, Long id) {
+    return moviesAPI.getSimilarMovies(pageable, id);
+  }
 }

@@ -1,5 +1,6 @@
 package br.com.matchfilmes.api.infra.movies;
 
+import br.com.matchfilmes.api.dtos.GenreDTO;
 import br.com.matchfilmes.api.dtos.MovieDTO;
 import br.com.matchfilmes.api.exceptions.MovieNotFoundException;
 import org.springframework.data.domain.Pageable;
@@ -14,4 +15,5 @@ public interface MoviesAPI {
   PagedModel<MovieDTO> getRecommendedMovies(Pageable pageable, Long movieId);
   PagedModel<MovieDTO> getSimilarMovies(Pageable pageable, Long movieId);
   PagedModel<MovieDTO> getMovies(Pageable pageable, String query);
+  GenreDTO getGenre(Long id);
 }
